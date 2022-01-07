@@ -268,7 +268,10 @@
                     
                         paddingData = new Uint8Array(max * max * max)
 
-                        modelView.loadData(paddingData, max, 75)
+                        modelView.databuffer = paddingData;
+                        modelView.size = max;
+                        modelView.threshold = 75
+                        modelView.updateModel()
                     }
                 }
 
@@ -277,17 +280,29 @@
 
             // 模型資料下載
             elements[1].addEventListener('click', (evt) => {
+                let exporter = new STLExporter()
+                let mesh = modelView.download()
 
+                let result = exporter.parse(mesh, { binary: false });
+                let blob = new Blob([result], { type:'text/plain' });
+
+                let dLink = document.createElement('a')
+                dLink.href = URL.createObjectURL(blob);
+                dLink.download = 'model.stl'
+                dLink.click();
             })
 
             // 閥值設定
             elements[2].addEventListener('click', (evt) => {
-
+                let isoValue = evt.srcElement.value;
+                modelView.threshold = isoValue;
+                modelView.updateModel();
             })
 
             // 紋理設置
             elements[3].addEventListener('change', (evt) => {
-
+                let selectedTextureIndex = evt.srcElement.value;
+                modelView.updateModel();
             })
 
             // 模型網格顯示
