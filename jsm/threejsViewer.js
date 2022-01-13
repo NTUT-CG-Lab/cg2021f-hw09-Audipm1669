@@ -69,34 +69,88 @@ class threejsViewer {
             this.camera.updateProjectionMatrix();
         })
 
-        this.loadData = () => {
-            let mesh = new MarchingCubes(this.size);
+        let mesh = null;
+        /*this.loadData = () => {
+            mesh = new MarchingCubes(size);
             mesh.material = new THREE.MeshPhongMaterial();
             mesh.isolation = this.threshold;
             mesh.field = this.databuffer;
 
-            this.scene.add(mesh)
+            this.scene.add(mesh);
+        }*/
+        this.loadData = (paddingData, size, isoVelue, selectedTextureIndex)=>{
+            let mesh = this.scene.getObjectByName('mesh');
+            this.textureOption= selectedTextureIndex;
+            if(mesh==null){
+                mesh = new MarchingCubes(size);
+                mesh.name = 'mesh';
+                if(this.textureOption==0){
+                    mesh.material = new THREE.MeshPhongMaterial();
+                }
+                else if(this.textureOption==1){
+                    mesh.material = new THREE.MeshNormalMaterial();
+                }
+                //mesh.material = new THREE.MeshPhongMaterial({color: 0x00FF00});
+                //mesh.material = new THREE.MeshNormalMaterial();
+                mesh.isolation = isoVelue;
+                mesh.field = paddingData;
+                //mesh.material = new THREE.MeshBasicMaterial();
+                //console.log(size);
+                mesh.position.set( 0, 0.5, 0 );
+
+                this.scene.add(mesh);
+            }
+            else{
+                console.log('else');
+                if(this.textureOption==0){
+                    mesh.material = new THREE.MeshPhongMaterial();
+                }
+                else if(this.textureOption==1){
+                    mesh.material = new THREE.MeshNormalMaterial();
+                }
+                mesh.isolation = isoVelue;
+                //mesh.field = paddingData;
+                //mesh.position.set( 0, 0.5, 0 );
+
+                //this.scene.add(mesh);
+            }
+            /*
+            mesh = new MarchingCubes(size);
+            this.textureOption= selectedTextureIndex;
+            if(this.textureOption==0){
+                mesh.material = new THREE.MeshPhongMaterial();
+            }
+            else if(this.textureOption==1){
+                mesh.material = new THREE.MeshNormalMaterial();
+            }
+            //mesh.material = new THREE.MeshPhongMaterial({color: 0x00FF00});
+            //mesh.material = new THREE.MeshNormalMaterial();
+            mesh.isolation = isoVelue;
+            mesh.field = paddingData;
+            //mesh.material = new THREE.MeshBasicMaterial();
+            //console.log(size);
+            mesh.position.set( 0, 0.5, 0 );
+
+            this.scene.add(mesh);*/
         }
 
-        this.updateModel = () => {
+        this.updateModel = () =>{
             let mesh = this.scene.getObjectByName('mesh');
-
-            if (mesh == null) {
+            if(mesh==null){
                 let mesh = new MarchingCubes(this.size);
                 mesh.name = 'mesh';
-
-                // if (this.textureOption == 0) {
-                //     // mesh.material = ...
-                // } else (this.textureOption == 1) {
-                //     // mesh.material = ... 
-                // };
-                
+                if(this.textureOption==0){
+                    mesh.material = 'MeshNormalMaterial';
+                }
+                else if(this.textureOption==1){
+                    mesh.material = 'MeshNormalMaterial';
+                }
+                //mesh.material = ''
                 mesh.isolation = this.threshold;
                 mesh.field = this.databuffer;
-
-                return mesh;
             }
-            
+            //let mesh = new MarchingCubes(this.size);
+            //mesh.name = 'mesh';
         }
 
         this.download = () => {

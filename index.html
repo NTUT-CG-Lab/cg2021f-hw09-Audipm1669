@@ -167,14 +167,14 @@
             //加入項目，分數，完成狀況
             //第一個參數為 項目名稱
             //第2個參數為 項目分數
-            //第3個參數為 完成狀況，有完成 true/未完成 false
+            //第3個參數為 完成狀況，有完成 true/未完成 falsess
             //有幾個項目就呼叫幾個 addChild
             //addChild 要比 renderModal 先呼叫
             so.addChild("讀取文件並顯示資訊", 4, true);
             so.addChild("生成模型", 2, true);
-            so.addChild("閥值控制", 1, false);
+            so.addChild("閥值控制", 1, true);
             so.addChild("文件下載", 1, false);
-            so.addChild("材質更換", 2, false);
+            so.addChild("材質更換", 2, true);
 
             //產生自評表，參數如下所示
             so.renderModal(
@@ -210,7 +210,7 @@
         import { PLYExporter } from "./threejs/examples/jsm/exporters/PLYExporter.js";
         import { STLExporter } from "./threejs/examples/jsm/exporters/STLExporter.js";
 
-        const fileRegex = /(\w+)_(\d+)x(\d+)x(\d+)_(\w+)\.*/;
+        const fileRegex = /(\w+)_(\d+)_(\d+)_(\d+)_(\w+)\.*/;
 
         let modelView = new threejsViewer(document.body)// webgl畫布
 
@@ -236,80 +236,91 @@
             })
 
             let elements = document.getElementsByName('settingForm')
+            let values,width,height,depth,byte,max;
+            let selectedTextureIndex =0;
+            let isovalue = 127;
+            let data,paddingData = null;
 
             // RAW文件讀取
             elements[0].addEventListener('change', (evt) => {
                 let fr = new FileReader();
                 let files = evt.target.files;
-                
-                if (files.length <= 0) {
+
+                if(files.length<=0){
                     return;
                 }
 
                 let file = evt.target.files[0];
                 let filename = file.name;
                 filename = filename.split('.');
-                let values = filename.split("_");
+                let values = filename[0].split('_');
                 let width = values[1];
                 let height = values[2];
                 let depth = values[3];
                 let byte = values[4];
-                
-                let max = Math.max(width, height, depth)
-                
+                let max = Math.max(width, height, depth);
                 let data = null;
                 let paddingData = null;
-                
+                console.log('長 / 寬 / 張數:',width,'/',height,'/',depth);
                 fr.onload = () => {
                     let result = fr.result;
-
-                    if (byte == 'uint8') {
-                        data = new Uint8Array(result)
-                    
-                        paddingData = new Uint8Array(max * max * max)
-
-                        modelView.databuffer = paddingData;
+                    if(byte == 'uint8'){
+                        console.log('位元: 8bit');
+                        data = new Uint8Array(result);
+                        //
+                        //data.buffer
+                        //console.log(data.buffer);
+                        //
+                        paddingData = new Uint8Array(max*max*max);
+                        paddingData = data
+                        /*modelView.databuffer = paddingData;
                         modelView.size = max;
-                        modelView.threshold = 75
-                        modelView.updateModel()
+                        modelView.threshold = 75;
+                        modelView.loadData();*/
+                        modelView.loadData(paddingData, max, isovalue, selectedTextureIndex);
                     }
                 }
-
-                fr.readAsArrayBuffer(file)
+                fr.readAsArrayBuffer(file);
             })
 
             // 模型資料下載
             elements[1].addEventListener('click', (evt) => {
-                let exporter = new STLExporter()
-                let mesh = modelView.download()
-
-                let result = exporter.parse(mesh, { binary: false });
-                let blob = new Blob([result], { type:'text/plain' });
-
-                let dLink = document.createElement('a')
-                dLink.href = URL.createObjectURL(blob);
-                dLink.download = 'model.stl'
-                dLink.click();
+                let exporter = new STLExporter();
+                let mesh = modelView.download();
+                //
+                let dlLink = document.createElement('a');
+                //
+                dlLink.click();
             })
 
             // 閥值設定
             elements[2].addEventListener('click', (evt) => {
-                let isoValue = evt.srcElement.value;
-                modelView.threshold = isoValue;
-                modelView.updateModel();
+                isovalue = parseInt((evt.srcElement.value)/1000*255);
+                //
+                //var getLabel = document.getElementById('isovalueSlider');
+                console.log('閥值:'+isovalue+'/255');
+                document.getElementById('isovalueSlider').innerHTML ='閥值:'+isovalue+'/255';
+                //getLabel.innerText='閥值:'+isovalue.toString+'/255';
+                modelView.threshold = isovalue;
+                //
+                console.log(isovalue);
+                modelView.loadData(paddingData, max, isovalue,selectedTextureIndex);
             })
 
             // 紋理設置
             elements[3].addEventListener('change', (evt) => {
-                let selectedTextureIndex = evt.srcElement.value;
-                modelView.updateModel();
+                selectedTextureIndex = evt.srcElement.value;
+                console.log(selectedTextureIndex);
+                //
+                modelView.loadData(paddingData, max, isovalue,selectedTextureIndex);
             })
 
             // 模型網格顯示
             elements[4].addEventListener('change', (evt) => {
                 let exporter = new STLExporter();
-                let mesh =  modelView.download();
-                let result = exporter.parse(mesh, {binary: true});
+                let mesh = modelView.download();
+                let result = exporter.parse(mesh, {binary:true});
+
             })
         }
 
